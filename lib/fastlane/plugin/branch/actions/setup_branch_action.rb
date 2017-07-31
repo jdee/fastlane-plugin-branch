@@ -47,6 +47,8 @@ module Fastlane
           new_path = helper.add_universal_links_to_project xcodeproj, target, domains, params[:remove_existing_domains]
           other_action.git_add path: new_path if params[:commit] && new_path
           xcodeproj.save
+
+          helper.patch_app_delegate_swift other_action, xcodeproj
         end
 
         if params[:android_project_path] || params[:android_manifest_path]

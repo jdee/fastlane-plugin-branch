@@ -240,6 +240,7 @@ DEPENDENCIES
   cocoapods
   fastlane (>= 2.26.1)
   fastlane-plugin-branch!
+  fastlane-plugin-patch
   pry
   rake
   rspec
