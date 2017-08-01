@@ -1,3 +1,4 @@
+require "fastlane/plugin/patch"
 require "plist"
 
 module Fastlane
@@ -325,6 +326,39 @@ module Fastlane
           search_position += expanded_macro.length
         end
         setting_value
+      end
+
+      def patch_app_delegate_swift(project)
+        app_delegate_swift = project.files.find { |f| f.path =~ /AppDelegate.swift$/ }
+        raise "*AppDelegate.swift not found in project" if app_delegate_swift.nil?
+
+        app_delegate_swift_path = app_delegate_swift.real_path.to_s
+
+        UI.message "Patching #{app_delegate_swift_path}"
+
+        Actions::ApplyPatchAction.run(
+          files: app_delegate_swift_path,
+          regexp: /^\s*import .*$/,
+          text: "\nimport Branch",
+          mode: :prepend,
+          offset: 0
+        )
+
+        init_session_text = <<-EOF
+        Branch.getInstance().initSession(with: launchOptions) {
+            universalObject, linkProperties, error in
+        }
+        EOF
+
+        Actions::ApplyPatchAction.run(
+          files: app_delegate_swift_path,
+          regexp: /didFinishLaunchingWithOptions.*\{[^\n]*\n/m,
+          text: init_session_text,
+          mode: :append,
+          offset: 0
+        )
+
+        Fastlane::Helper::BranchHelper.add_change app_delegate_swift_path
       end
     end
   end
